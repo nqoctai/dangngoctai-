@@ -1,0 +1,409 @@
+#include <iostream>
+#include <stdio.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <string.h>
+using namespace std;
+struct Dienthoai
+{
+	char maDt[50];
+	char ten[50];
+	float km;
+	int dg;
+	int sl;
+};
+typedef Dienthoai value;
+struct TNode
+{
+	value Infor;
+	TNode* Left;
+	TNode* Right;
+};
+struct BTree
+{
+	TNode* root;
+};
+void nhapDT(value& x)
+{
+	fflush(stdin);
+	cout << "Nhap ma dien thoai: ";
+	cin >> x.maDt;
+	cout << "Nhap ten dien thoai: ";
+	cin >> x.ten;
+	cout << "Nhap khuyen mai (Nhap theo so thap phan vi du 10 phan tram = 0.1): ";
+	cin >> x.km;
+	cout << "Nhap so luong: ";
+	cin >> x.sl;
+	cout << "Nhap don gia: ";
+	cin >> x.dg;
+}
+
+int sosanhDT(value x,value y)
+{
+	if(x.dg==y.dg)
+		return 0;
+	else
+	{
+		if(x.dg>y.dg)
+		return 1;
+		else
+		return -1;
+	}
+}
+TNode* createTNode(value x)
+{
+	TNode* p = new TNode;
+	if (p == NULL)
+	{
+		cout << "Khong the cap phat bo nho" << endl;
+		return NULL;
+	}
+	p->Infor = x;
+	p->Left = NULL;
+	p->Right = NULL;
+	return p;
+}
+
+void initBTree(BTree& bt)
+{
+	bt.root = NULL;
+}
+int isEmpty(BTree bt)
+{
+	if (bt.root == NULL)
+		return 1;
+	else
+		return 0;
+}
+int insertTNode(TNode* &root, TNode* p)
+{
+	if (p == NULL)
+		return 0;
+	if (root == NULL)
+	{
+		root = p;
+		return 1;
+	}
+	if (sosanhDT(root->Infor,p->Infor)==0)
+		return 0;
+	if (sosanhDT(p->Infor,root->Infor)==-1)
+		insertTNode(root->Left, p);
+	else
+		insertTNode(root->Right, p);
+	return 1;
+}
+void xuatDT(value x)
+{
+	cout << "Ma dien thoai: " << x.maDt << endl;
+	cout << "Ten dien thoai: " << x.ten << endl;
+	cout << "Khuyen mai: " << x.km << endl;
+	cout << "So luong: " << x.sl << endl;
+	cout << "Don gia: " << x.dg << endl;
+}
+void traverseNLR(TNode* root)
+{
+	if (root == NULL) return;
+	xuatDT(root->Infor);
+	traverseNLR(root->Left);
+	traverseNLR(root->Right);
+}
+TNode* findTNode(TNode* root, value x)
+{
+	if (root == NULL)
+	return NULL;
+	if (sosanhDT(root->Infor,x)==0)
+		return root;
+	else
+	{
+		if (sosanhDT(x,root->Infor)==-1)
+			return findTNode(root->Left, x);
+		else
+			return findTNode(root->Right, x);
+	}
+}
+TNode* findTNodeReplace(TNode*& p)
+{
+	TNode* f = p;
+	TNode* q = p->Right;
+	while (q->Left != NULL)
+	{
+		f = q;
+		q = q->Left;
+	}
+	p->Infor = q->Infor;
+	if (f == p)
+	{
+		f->Right = q->Right;
+	}
+	else
+	{
+		f->Left = q->Right;
+	}
+}
+int deleteTNode(TNode*& root, value x)
+{
+	if (root == NULL)
+		return 0;
+			
+	if(sosanhDT(x,root->Infor)==0)
+		{
+			TNode* p = root;
+			if (root->Left == NULL)
+			{
+				root = root->Right;
+				delete p;
+			}
+			else if (root->Right == NULL)
+			{
+				root = root->Left;
+				delete p;
+			}
+			else
+			{
+				TNode* q = findTNodeReplace(p);
+				delete q;
+			}
+			return 1;
+		}
+	if (sosanhDT(x,root->Infor)==-1)
+		return deleteTNode(root->Left, x);
+	else if (sosanhDT(x,root->Infor)==1)
+		return deleteTNode(root->Right, x);
+}
+void findDT10(TNode* root,float gioihan)
+{
+    if(root==NULL)
+	return;
+	if(root->Infor.km>gioihan)
+	   xuatDT(root->Infor);
+	findDT10(root->Left,gioihan);
+	findDT10(root->Right,gioihan);
+}
+void creatListDT(BTree & bt, int& n)
+	{
+		value x;
+		cout << "Nhap so luong dien thoai: ";
+		cin >> n;
+		for (int i = 0; i < n; i++)
+		{
+			cout << "Nhap dien thoai thu " << i+1 << ":" << endl;
+			nhapDT(x);
+			TNode* p = createTNode(x);
+			insertTNode(bt.root, p);
+		}
+	}
+TNode* findMax(TNode* root)
+{
+	TNode* max= root;
+	if(root->Right==NULL)
+	return max;
+	else
+	return findMax(root->Right);
+}
+int sumTienthucte(TNode* root)
+{
+	if(root==NULL)
+	return 0;
+	int suml=sumTienthucte(root->Left);
+	int sumr=sumTienthucte(root->Right);
+	int tienthucte =  (root->Infor.dg - (root->Infor.km*root->Infor.dg))*root->Infor.sl;
+	return tienthucte + suml + sumr;
+}
+void inDTcoGiabanthucte(TNode* root)
+{
+	if(root==NULL)
+	return;
+	int gbtt=root->Infor.dg - (root->Infor.km*root->Infor.dg);
+	cout << "Ten dien thoai: " << root->Infor.ten << endl;
+	cout << "Ma dien thoai: " << root->Infor.maDt << endl;
+	cout <<"Gia ban thuc te: " << gbtt << endl;
+	inDTcoGiabanthucte(root->Left);
+	inDTcoGiabanthucte(root->Right);
+}
+int sumGiamgia(TNode* root)
+{
+	if(root==NULL)
+	return 0;
+	int sumggl=sumGiamgia(root->Left);
+	int sumggr=sumGiamgia(root->Right);
+	int tiengiamgia=(root->Infor.km*root->Infor.dg)*root->Infor.sl;
+	return tiengiamgia+sumggl+sumggr;
+}
+void traverseRNL(TNode* root)
+{
+	if (root == NULL) return;
+	traverseRNL(root->Right);
+	xuatDT(root->Infor);
+	traverseRNL(root->Left);
+}
+int chieucaocuaNode(TNode* root)
+{
+	if(root==NULL)
+	return 0;
+	int heightl=chieucaocuaNode(root->Left);
+	int heightr=chieucaocuaNode(root->Right);
+	if(heightl>=heightr)
+	return heightl+1;
+	else
+	return heightr+1;
+}
+void Chieucaolonhon10(TNode* root)
+{
+	if(root==NULL)
+	return;
+	if(root->Infor.sl>10)
+	{
+		xuatDT(root->Infor);
+		cout << "Chieu cao cua node: " << chieucaocuaNode(root) << endl;
+	}
+	Chieucaolonhon10(root->Left);
+	Chieucaolonhon10(root->Right);
+}
+int demSDTco2con(TNode* root)
+{
+	int dem=0;
+	if(root==NULL)
+	return 0;
+	if(root->Left==NULL || root->Right==NULL)
+	return 0;
+	else
+	{
+		if(root->Left->Infor.dg <= 5000 || root->Right->Infor.dg <=5000)
+		return 0;
+		else
+		dem++;
+	}
+	int demLeft = demSDTco2con(root->Left);
+	int demRight=demSDTco2con(root->Right);
+	return dem + demLeft + demRight;
+}
+void inDTmucK(TNode* root, int k, int i)
+{
+	if(root==NULL)
+	return;
+	if(i==k)
+	xuatDT(root->Infor);
+	inDTmucK(root->Left,k,i+1);
+	inDTmucK(root->Right,k,i+1);
+}
+void xoaDTtenTrung(TNode* &root, char tenTrung[50])
+{
+	int kq=0;
+	if(root==NULL)
+		return;
+	
+    xoaDTtenTrung(root->Left,tenTrung);
+    xoaDTtenTrung(root->Right,tenTrung);
+    
+    if(strcmp(root->Infor.ten,tenTrung)==0)
+		kq= deleteTNode(root,root->Infor);
+	
+	
+}
+int main()
+	{
+		int n,lc;
+		BTree bt;
+		value dt;
+		initBTree(bt);
+		creatListDT(bt, n);
+		do
+		{
+			system("cls");
+			cout << "----------------------------------------------MENU------------------------------------------------------" << endl;
+			cout << "1. Tim kiem dien thoai co khuyen mai tren 10 phan tram" << endl;
+			cout << "2. Tim dien thoai co gia ban cao nhat" << endl;
+			cout << "3. Tinh tong tien cua tat ca dien thoai trong cua hang theo gia ban thuc te" << endl;
+			cout << "4. In ra tat ca dien thoai co gia ban thuc te" << endl;
+			cout << "5. Tinh tong tien giam gia" << endl;
+			cout << "6. In danh sach cac dien thoai theo thu tu giam dan don gia" << endl;
+			cout << "7. Viet ham tra ve do cao cua node lon hon 10" << endl;
+			cout << "8. Dem so dien thoai co 2 con co don gia lon hon 5000" << endl;
+			cout << "9. In tat ca dien thoai theo muc k" << endl;
+			cout << "10. Xoa dien thoai theo ten nhap vao" << endl;
+			cout <<"Vui long nhap lua chon: ";
+			cin >> lc;
+			switch(lc)
+			{
+				case 1:
+					{
+						findDT10(bt.root,0.1);
+						system("pause");
+						break;
+					}
+				case 2:
+					{
+						TNode* temp= findMax(bt.root);
+						cout << "Dien thoai co gia ban cao nhat la: " << endl;
+						xuatDT(temp->Infor);
+						system("pause");
+						break;
+					}
+				case 3:
+					{
+						cout << "Tong tien thuc te cua tat ca cac dien thoai trong cua hang la: " << sumTienthucte(bt.root);
+						system("pause");
+						break;
+					}
+				case 4:
+					{
+						cout << "============================Danh sach dien thoai theo gia tien thuc te================================" << endl;
+						inDTcoGiabanthucte(bt.root);
+						system("pause");
+						break;	
+					}
+				case 5:
+					{
+					    cout << "Tong tien giam gia la: " << sumGiamgia(bt.root) << endl;
+						system("pause");
+						break;		
+					}
+				case 6:
+					{
+						cout << "=============================Danh sach theo tu tu giam dan==========================================" << endl;
+						traverseRNL(bt.root);
+						system("pause");
+						break;
+					}
+				case 7:
+					{
+						Chieucaolonhon10(bt.root);
+						system("pause");
+						break;
+			     	}
+			    case 8:
+			     	{
+			     		cout << "So luong cay co 2 con co don gia lon hon 5000 la: " << demSDTco2con(bt.root) << endl;
+			     		system("pause");
+			     		break;
+					}
+				case 9:
+					{
+						int k;
+						cout << "Nhap muc k: ";
+						cin >> k;
+						cout << "============================Danh sach dien thoai o muc k===============================" << endl;
+						inDTmucK(bt.root,k,0);
+						system("pause");
+						break;
+					}
+				case 10:
+					{
+						char tenTrung[50];
+						cout << "Nhap ten dien thoai muon xoa: ";
+						cin >> tenTrung;
+						xoaDTtenTrung(bt.root,tenTrung);
+						system("pause");
+						break;
+					}
+				case 11:
+					{
+						cout << "============================Danh sach dien thoai=======================================" << endl;
+						traverseNLR(bt.root);
+						system("pause");
+						break;
+					}
+			}
+		}while(lc!=0);
+
+}
